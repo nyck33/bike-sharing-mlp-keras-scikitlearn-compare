@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 
 class NeuralNetwork(object):
@@ -30,6 +31,36 @@ class NeuralNetwork(object):
         #def sigmoid(x):
         #    return 0  # Replace 0 with your sigmoid calculation here
         #self.activation_function = sigmoid
+    
+    def save_weights(self, filename):
+        ''' Save the weights of the neural network to a file. '''
+        weights = {
+            'input_to_hidden': self.weights_input_to_hidden,
+            'hidden_to_output': self.weights_hidden_to_output
+        }
+        np.savez(filename, **weights)
+    
+    def load_latest_weights(self, directory='saved_weights'):
+        """ Load the latest weights from the specified directory. """
+        if not os.path.exists(directory) or not os.listdir(directory):
+            print("Directory not found or is empty. No weights loaded.")
+            return
+
+        # List all .npz files in the directory
+        files = [f for f in os.listdir(directory) if f.endswith('.npz') and f.startswith('weights_iter_')]
+        
+        # Extract the iteration numbers from the file names
+        iter_numbers = [int(f.split('_')[-1].split('.')[0]) for f in files]
+
+        # Find the file with the highest iteration number
+        latest_file = files[np.argmax(iter_numbers)]
+        latest_path = os.path.join(directory, latest_file)
+        
+        # Load weights from this file
+        data = np.load(latest_path)
+        self.weights_input_to_hidden = data['input_to_hidden']
+        self.weights_hidden_to_output = data['hidden_to_output']
+        print(f"Loaded weights from {latest_path}")
                     
 
     def train(self, features, targets):
